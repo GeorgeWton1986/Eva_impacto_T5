@@ -1,0 +1,215 @@
+---
+title: "EVALUACIÓN DE IMPACTO - TALLER 5"
+author: "VIÁFARA MORALES, JORGE ELIECER"
+date: "2025-09-27"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+## Introducción
+
+En su artículo “Islamic Rule and the Empowerment of the Poor and Pious”, Meyersson (2014) investiga si la llegada al poder por parte del Partido Islámico tiene algún efecto sobre el empoderamiento de las mujeres en Turquía. Para esto, implementa la metodología de Regresión Discontinua, explotando información de: (1) elecciones locales de alcalde en Turquía del año 1994 y (2) mujeres con educación secundaria completa en el año 2000. Concretamente, estima por MCO la siguiente ecuación
+
+\begin{align}
+y_{i}=α+\beta m_i+f(x_i)+ε_i\quad \nonumber \\
+\end{align}
+
+Donde: 
+$y_i$ es la proporción de mujeres entre 15 y 20 años con educación secundaria completa en el año 2000.
+
+$x_i$ es el margen de votos con el que ganó o perdió el candidato del partido islámico.
+
+$f(⋅)$ es un polinomio de grado $n$ de la variable $x_i$.
+$m_i$ es una dicótoma que toma el valor de uno si $x_i≥0$, es decir, si el alcalde que llegó al poder en 1994 era del partido Islámico.
+
+$ε_i$ es el término del error. La ecuación es estimada en un vecindario alrededor del corte, el cual, en este caso, es cero.
+
+En este taller, ustedes realizarán algunas de las estimaciones hechas por el autor e interpretarán los resultados. Para esto, deben usar una submuestra aleatoria de la base de datos turquia.dta. Así, justo después de abrir la base de datos – i.e., la base completa, deben eliminar aleatoriamente el 5% de las observaciones y usar la base restante.  La semilla que deben usar para que sus resultados sean replicables es su código de estudiante. 
+
+Como su solución a este conjunto de problemas, proporcione un documento PDF con sus respuestas y el do file (u otro programa) que usó para resolverlo. Se recomienda tener respuestas tan breves como sea posible. Ciertas preguntas, sobre todo aquellas que preguntan por su opinión, pueden no tener una única respuesta correcta. Así, lo importante es que argumenten de manera coherente. No seguir estas instrucciones básicas resultará en penalizaciones en su calificación.
+
+## Primer Punto
+1.	¿Por qué el autor usa la metodología de Regresión Discontinua para identificar los efectos de interés? ¿Cuál es la intuición detrás? ¿Cuál es el supuesto de identificación?
+
+### Solución Primer Punto
+
+a)	¿Por qué el autor usa la metodología de Regresión Discontinua para identificar los efectos de interés? 
+
+**Respuesta:** El autor usa la metodología de Regresión Discontinua (RD) porque quiere identificar el impacto causal local de las leyes o políticas islamicas en terminos de resultados de la educación a nivel municipal, haciando una distinción entre ganar o perder las elecciones por parte del partido islamico.
+
+Es decir, es conocido que un gobierno islamico representa pobreza, religiosidad, tradiciones conservadoras y derechos restringidos para las mujeres. 
+
+b)	¿Cuál es la intuición detrás?
+
+**Respuesta:** El diseño de un RD permite establecer un punto de corte (Umbral) $c=0$ de acuerdo con el indice de elegibilidad $m_i$. 
+
+c)	¿Cuál es el supuesto de identificación?
+
+**Respuesta:** Las caracteristica observables y no observables varian levemente alrededor del umbral. Además, no hay manipulación de la variable de asignación $x_i$ alrededor del umbral.
+
+## Segundo Punto
+2.	Para cada género, presenten en una tabla los resultados de estimar las siguientes especificaciones
+
+### Generalidades de R
+```{r}
+#Limpiar la consola
+cat("\f")
+
+#Limpiar el Global Environment
+rm(list = ls())
+
+#Incluir las librerias
+if(!require(pacman)) install.packages("pacman") ; require(pacman)
+p_load(haven,   #Leer archivos .dta
+      dplyr,    #Manipular datos
+      stargazer,  #Visualizar tablas de regresión
+      fixest,   #Calcular los efectos fijos
+      plm,  #Datos de panel
+      knitr,   #Visualizar tablas adicionales
+      ivreg,  #Regresiones por variables instrumentales
+      broom, #Extraer resultados de regresiones
+      AER,    #Regresiones por variables instrumentales
+      sandwich, #Errores estándar robustos
+      lmtest,  #Pruebas estadísticas
+      kableExtra, #Tablas avanzadas
+      tidyverse, #Conjunto de paquetes para ciencia de datos
+      modelsummary, #Resumir modelos
+      ggplot2 #Gráficos
+      )
+```
+
+### Transformación de datos en R
+```{r}
+# Definir URL del repositorio
+github_url <- "https://raw.githubusercontent.com/GeorgeWton1986/Eva_impacto_T5/main"
+# Cargar datos
+BD_0 <- read_dta(paste0(github_url, "/Data/turquia.dta"))
+
+
+# Ver estructura de los datos
+#glimpse(BD_0)
+#head(BD_0)
+
+# Verificar los nombres de la columnas
+colnames(BD_0)
+```
+
+
+```{r}
+# Incluir la semilla con mi código de estudiante
+set.seed(202415176)
+
+# Eliminar aleatoriamente el 5% de las observaciones
+BD_1 <- BD_0 %>% sample_frac(0.95)
+
+# Incluir la variable dicotoma, si gano el partido Islamico en 1994
+
+BD_1 <- BD_1 %>%
+  mutate(
+    islamic_mayor_1994 = ifelse(ilmvsm1994 >= 0, 1, 0)
+  )
+
+# Verificar dimensiones
+cat("Observaciones después de eliminar 5%:", nrow(BD_1), "\n")
+
+# Valor de la banda optimo
+
+h_hat <- 0.24
+
+# Submuestra 1
+
+BD_h <- BD_1 %>%
+  filter(abs(ilmvsm1994) <= h_hat)
+
+# Submuestra 2
+
+BD_h2 <- BD_1 %>%
+  filter(abs(ilmvsm1994) <= h_hat/2)
+
+cat("Observaciones completa:", nrow(BD_1), "\n")
+cat("Observaciones en submuestra h=0,24:", nrow(BD_h), "\n")
+cat("Observaciones en submuestra h/2=0,12:", nrow(BD_h2), "\n")
+
+#Controles
+
+controles <- c("vshr_islam1994", "partycount", "lpop1994",
+               "ageshr19", "ageshr60", "sexr", "shhs",
+               "merkezi", "merkezp", "buyuk", "subbuyuk")
+
+```
+
+**Respuesta:** A continuación, presentamos el desarrollo de los modelos.
+
+Manual avanzado de R markdown: https://rpubs.com/ricardo/14631 
+
+a) Ecuación principal, para toda la muestra, sin incluir controles.
+```{r warning=FALSE, message=FALSE}
+# Modelo a
+
+mod_2_a <- feols(
+  hischshr1520f ~ islamic_mayor_1994,
+  data = BD_1,
+  cluster = ~prov
+)
+```
+
+b) Ecuación principal, para toda la muestra, con controles.
+
+```{r warning=FALSE, message=FALSE}
+# Modelo b
+
+mod_2_b <- feols(
+  hischshr1520f ~ islamic_mayor_1994,
+  data = BD_1,
+  cluster = ~prov
+)
+```
+
+c) Ecuación principal, para la submuestra a  $\hat{h}$ unidades alrededor del corte, con controles.
+d) Ecuación principal, para la submuestra a  $\hat{h}/2$ unidades alrededor del corte, con controles.
+
+donde $\hat{h}=0,24$ es el ancho de banda óptimo estimado por los autores. Para las especificaciones con controles, supongan que: 
+
+\begin{align}
+f(x_i)=\gamma x_i+\delta x_i×m_i \quad \nonumber \\
+\end{align}
+
+Es decir, un polinomio de grado uno con pendiente distinta a cada lado del corte.  Para las especificaciones sin controles, no incluyan ningún polinomio. Todas las especificaciones deben usar errores estándar clúster a nivel de provincia. 
+
+
+### Solución Segundo Punto
+
+## Tercer Punto
+3.	A partir de los resultados encontrados en el anterior punto, respondan:
+
+### Solución tercer Punto
+a) ¿Por qué cambian los coeficientes entre especificaciones?
+
+**Respuesta:** 
+
+b) ¿Cuál parece ser el impacto de la llegada al poder del Partido Islámico para las mujeres? 
+
+**Respuesta:** 
+
+¿Parece ser este impacto robusto a las especificaciones?
+
+**Respuesta:**
+
+## Cuarto Punto
+
+4. Finalmente, presenten evidencia a favor (o en contra) del supuesto de identificación. Para esto,
+
+### Solución cuarto Punto
+a) Presenten en una gráfica la distribución kernel o el histograma  de la variable de asignación $x_i$. ¿Parece haber manipulación? 
+
+**Respuesta:**
+
+b) En una tabla presenten los resultados de estimar la ecuación de interés, sin controles, pero incluyendo $f(x_i)$, tomando como variables dependientes: i) la elección de un alcalde del partido Islámico en 1984 $(i89)$ y ii) el logaritmo de la población en 1994 $(lpop1994)$. Para esto, usen únicamente la muestra de elecciones alrededor del ancho de banda óptimo. Dados sus resultados, ¿parece haber continuidad en estas variables?
+
+**Respuesta:**
+
+c) Dados sus resultados en los incisos a y b, ¿es plausible el supuesto de identificación? Expliquen por qué.
+
+**Respuesta:**
