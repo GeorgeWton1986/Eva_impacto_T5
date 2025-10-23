@@ -138,36 +138,99 @@ controles <- c("vshr_islam1994", "partycount", "lpop1994",
                "ageshr19", "ageshr60", "sexr", "shhs",
                "merkezi", "merkezp", "buyuk", "subbuyuk")
 
+#Incluir los controles a la base principal
+
+controles_disponibles <- controles[controles %in% colnames(BD_1)]
+cat("Controles disponibles:", paste(controles_disponibles, collapse=", "), "\n")
+
 ```
 
 **Respuesta:** A continuación, presentamos el desarrollo de los modelos.
 
 Manual avanzado de R markdown: https://rpubs.com/ricardo/14631 
 
+### Solución Segundo Punto
+
 a) Ecuación principal, para toda la muestra, sin incluir controles.
 ```{r warning=FALSE, message=FALSE}
 # Modelo a
 
-mod_2_a <- feols(
+# Caso mujeres
+
+modelo_2m_a <- feols(
   hischshr1520f ~ islamic_mayor_1994,
+  data = BD_1,
+  cluster = ~prov
+)
+
+# Caso hombre
+
+modelo_2h_a <- feols(
+  hischshr1520m ~ islamic_mayor_1994,
   data = BD_1,
   cluster = ~prov
 )
 ```
 
 b) Ecuación principal, para toda la muestra, con controles.
-
 ```{r warning=FALSE, message=FALSE}
 # Modelo b
 
-mod_2_b <- feols(
-  hischshr1520f ~ islamic_mayor_1994,
+# formula compacta con controles mujeres
+
+formula_m_b <- as.formula(paste(
+  "hischshr1520f ~ islamic_mayor_1994 + ilmvsm1994 + ilmvsm1994:islamic_mayor_1994 +",
+  paste(controles_disponibles, collapse = " + ")
+))
+
+# Especificación completa con controles mujeres
+
+modelo_2m_b <- feols(
+  formula_m_b,
   data = BD_1,
   cluster = ~prov
 )
+
+# formula compacta con controles hombre
+
+formula_h_b <- as.formula(paste(
+  "hischshr1520m ~ islamic_mayor_1994 + ilmvsm1994 + ilmvsm1994:islamic_mayor_1994 +",
+  paste(controles_disponibles, collapse = " + ")
+))
+
+# Especificación completa con controles hombres
+
+modelo_2h_b <- feols(
+  formula_h_b,
+  data = BD_1,
+  cluster = ~prov
+)
+
 ```
 
 c) Ecuación principal, para la submuestra a  $\hat{h}$ unidades alrededor del corte, con controles.
+```{r warning=FALSE, message=FALSE}
+# Modelo c
+
+# Especificación con submuestra $\hat{h}$ = 0,24 mujeres
+
+modelo_2m_c <- feols(
+  formula_m_b,
+  data = BD_h,
+  cluster = ~prov
+)
+
+# Especificación con submuestra $\hat{h}$ = 0,24 hombres
+
+modelo_2h_c <- feols(
+  formula_h_b,
+  data = BD_h,
+  cluster = ~prov
+)
+
+```
+
+
 d) Ecuación principal, para la submuestra a  $\hat{h}/2$ unidades alrededor del corte, con controles.
 
 donde $\hat{h}=0,24$ es el ancho de banda óptimo estimado por los autores. Para las especificaciones con controles, supongan que: 
@@ -178,8 +241,115 @@ f(x_i)=\gamma x_i+\delta x_i×m_i \quad \nonumber \\
 
 Es decir, un polinomio de grado uno con pendiente distinta a cada lado del corte.  Para las especificaciones sin controles, no incluyan ningún polinomio. Todas las especificaciones deben usar errores estándar clúster a nivel de provincia. 
 
+```{r warning=FALSE, message=FALSE}
+# Modelo d
 
-### Solución Segundo Punto
+# Especificación con submuestra $\hat{h}/2$ = 0,12 mujeres
+
+modelo_2m_d <- feols(
+  formula_m_b,
+  data = BD_h2,
+  cluster = ~prov
+)
+
+# Especificación con submuestra $\hat{h}/2$ = 0,12 hombres
+
+modelo_2h_d <- feols(
+  formula_h_b,
+  data = BD_h2,
+  cluster = ~prov
+)
+
+```
+
+A continuación, se presenta la tabla de resultados.
+
+```{r warning=FALSE, message=FALSE}
+# Tabla de resultados para mujeres entre 15 y 20 años educadas hasta secundaria.
+
+modelos_mujeres <- list(
+  "(a) Sin controles" = modelo_2m_a,
+  "(b) Con controles" = modelo_2m_b,
+  "(c) h=0.24" = modelo_2m_c,
+  "(d) h=0.12" = modelo_2m_d
+)
+
+#Table 1 Efecto en la educación de la mujeres
+
+modelsummary(
+  modelos_mujeres,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
+  gof_map = c("nobs", "r.squared"),
+  title = "Proporción mujeres 15-20 con secundaria completa"
+)
+
+# Tabla de resultados para hombres entre 15 y 20 años educadas hasta secundaria.
+
+modelos_hombres <- list(
+  "(a) Sin controles" = modelo_2h_a,
+  "(b) Con controles" = modelo_2h_b,
+  "(c) h=0.24" = modelo_2h_c,
+  "(d) h=0.12" = modelo_2h_d
+)
+
+```
+
+Resultado del efecto en la eduacion de las mujeres:
+```{r warning=FALSE, message=FALSE}
+
+#Table 1 Efecto en la educación de la mujeres
+
+cat("\n=== TABLA 1: EFECTOS EN EDUCACIÓN - MUJERES ===\n")
+modelsummary(
+  modelos_mujeres,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
+  gof_map = c("nobs", "r.squared"),
+  title = "Proporción mujeres 15-20 con secundaria completa"
+)
+
+# Extraer coeficientes
+
+coefs_mujeres <- sapply(modelos_mujeres, function(m) {
+  coef_val <- coef(m)["islamic_mayor_1994"]
+  se_val <- sqrt(vcov(m)["islamic_mayor_1994", "islamic_mayor_1994"])
+  c(coef = coef_val, se = se_val)
+})
+
+cat("\n=== RESUMEN COEFICIENTES MUJERES ===\n")
+print(t(coefs_mujeres))
+
+```
+
+Resultado del efecto en la eduacion de los hombres:
+```{r warning=FALSE, message=FALSE}
+
+#Table 1 Efecto en la educación de la hombres
+
+cat("\n=== TABLA 2: EFECTOS EN EDUCACIÓN - HOMBRES ===\n")
+modelsummary(
+  modelos_hombres,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
+  gof_map = c("nobs", "r.squared"),
+  title = "Proporción hombres 15-20 con secundaria completa"
+)
+
+# Extraer coeficientes hombres
+
+coefs_hombres <- sapply(modelos_hombres, function(m) {
+  coef_val <- coef(m)["islamic_mayor_1994"]
+  se_val <- sqrt(vcov(m)["islamic_mayor_1994", "islamic_mayor_1994"])
+  c(coef = coef_val, se = se_val)
+})
+
+cat("\n=== RESUMEN COEFICIENTES HOMBRES ===\n")
+print(t(coefs_hombres))
+
+```
+
+
 
 ## Tercer Punto
 3.	A partir de los resultados encontrados en el anterior punto, respondan:
@@ -187,29 +357,137 @@ Es decir, un polinomio de grado uno con pendiente distinta a cada lado del corte
 ### Solución tercer Punto
 a) ¿Por qué cambian los coeficientes entre especificaciones?
 
-**Respuesta:** 
+**Respuesta:** Los cambios en los coeficinetes obedecen a la inclusión o no de controles, al tamaño de la muestra (amplitud de la banda) y cada uno de los modelos tienen diferentes problemas de identificación. Veamos:
+
+**Modelo a Sin controles:** El coeficiente estimado (-0.027)*** presenta una correlación entre la variable eduación secundarias en niñas entre los 15 y 20 años y la varible dicotoma que respesenta la victoria del partido islamico en las elecciones de 1994. Por lo tanto, el coeficiente puede estar sesgado, por omisión de variables y no puede ser interpretados como un efecto causal.
+
+**Modelo b Con controles:** El coeficiente estimado (0.012)* se ajusta al incluir las varibales de control, a tal punto que el signo del coeficiente cambio respecto del modelo a. Además, el ajuste de la especificación permitio que los sesgos de selección se redujeran por lo controles. No obsetante, los municipios son dispares entre sí.
+
+**Modelo c h=0.24:** El coeficiente estimado (0.025)*** tiene una especificación con controles y una amplitud de banda de 0.24, inidicado que se realiza una comparación entre los municipios más cercanos al umbral ($c=0$), asegurando asi que la selección es casi aleatoria. Por lo tanto, se puede establecer que se minimiza el sesgo y este coeficiente puede ser interpretado como un efecto causal local (LATE).
+
+**Modelo d h=0.12:** El coeficiente estimado (0.029)** fue calculado con una especificación con controles y una amplitud de banda de 0.12, estas caracteristas disminuyen en número de observaciones y generan homogeniedad en la muestra de municipios que se estan comparando al rededor del umbral ($c=0$). Sin embargo, la disminución en el número de observaciones puede aumentar la varianza del estimador. Ahora, en terminos generales, el coeficiente tiene un valor cercano al modelo c, que puede sugerir una validación por robustez.
 
 b) ¿Cuál parece ser el impacto de la llegada al poder del Partido Islámico para las mujeres? 
 
-**Respuesta:** 
+**Respuesta:** De conformidad con la tabla 1 columna 3 (0.025)***, el efecto de la llegada al poder del Partido Islámico para las mujeres entre 15 y 20 años con secundaria completa, es positivo y significativo al 1%. Entonces, su interpretación sería la siguiente: La llegada de un alcalde islámico en 1994, incremento en promedio 2.5 puntos percetuales la proporción de mujeres entre 15 y 20 años con educación secundaria completa en el año 2000, en los municipios cercanos al umbral de victoria electoral. En terminos relativos, se puede establecer que fue de 2.5/16.3=15.34% (Proporción promedio de mujeres con secundaria completa en 2000).
 
 ¿Parece ser este impacto robusto a las especificaciones?
 
-**Respuesta:**
+**Respuesta:** Si, el impacto es robusto cuando se comparan las columnas 3 y 4 de la tabla 1, entendiendo que los coeficientes son positivos y sus significancias estadisticas varian entre el 1% y el 5%. Puede existir otra manera de comparación frente a la columna 1, donde la especificación genera una correlación y el estimados es negativo. En conclusión, el cambio del signo entre los modelos confirma el efecto causal robusto.  
 
 ## Cuarto Punto
 
 4. Finalmente, presenten evidencia a favor (o en contra) del supuesto de identificación. Para esto,
 
 ### Solución cuarto Punto
-a) Presenten en una gráfica la distribución kernel o el histograma  de la variable de asignación $x_i$. ¿Parece haber manipulación? 
+a) Presenten en una gráfica la distribución kernel o el histograma  de la variable de asignación $x_i$. ¿Parece haber manipulación?
 
-**Respuesta:**
+```{r warning=FALSE, message=FALSE}
+
+# Figura 1 Histograma con 99 bins
+p1 <- ggplot(BD_1, aes(x = ilmvsm1994)) +
+  geom_histogram(bins = 99, fill = "steelblue", color = "black", alpha = 0.7) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red", size = 1.2) +
+  labs(
+    title = "Figura 1: Test de Manipulación - Distribución del Margen de Victoria",
+    subtitle = "McCrary (2008) Density Test",
+    x = "Margen de victoria del partido islámico (ilmvsm1994)",
+    y = "Frecuencia",
+    caption = "Nota: Si hay salto en x=0 → evidencia de manipulación"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+
+print(p1)
+ggsave("figura1_manipulacion.png", width = 10, height = 6)
+
+# Figura 2 Densidad kernel
+p2 <- ggplot(BD_1, aes(x = ilmvsm1994)) +
+  geom_density(fill = "steelblue", alpha = 0.5, color = "darkblue", size = 1) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red", size = 1.2) +
+  labs(
+    title = "Figura 2: Densidad Kernel del Margen de Victoria",
+    x = "Margen de victoria del partido islámico",
+    y = "Densidad",
+    caption = "Nota: Si hay salto en x=0 → evidencia de manipulación"
+  ) +
+  theme_minimal() + 
+    theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+
+print(p2)
+ggsave("figura2_densidad.png", width = 10, height = 6)
+
+```
+
+**Respuesta:** A partir de los resultados observados en el figura 1 (Histograma) y la figura 2 (Densidad de Kernel), no se observa un salto en la distribución la variable $x_i$ (ilmvsm1994) - es el margen de votos con el que ganó o perdió el candidato del partido islámico-. Información que concuerda con el Autor Meyersson (2014), quien no encuentra evidencia de manipulación en la variable de asignación alrededor del umbral ($c=0$).
 
 b) En una tabla presenten los resultados de estimar la ecuación de interés, sin controles, pero incluyendo $f(x_i)$, tomando como variables dependientes: i) la elección de un alcalde del partido Islámico en 1984 $(i89)$ y ii) el logaritmo de la población en 1994 $(lpop1994)$. Para esto, usen únicamente la muestra de elecciones alrededor del ancho de banda óptimo. Dados sus resultados, ¿parece haber continuidad en estas variables?
 
-**Respuesta:**
+```{r warning=FALSE, message=FALSE}
+
+# Test 1: Islamic mayor 1989
+test_i89 <- feols(
+  i89 ~ islamic_mayor_1994 + ilmvsm1994 + ilmvsm1994:islamic_mayor_1994,
+  data = BD_h,
+  cluster = ~prov
+)
+
+# Test 2: Log población 1994
+test_lpop <- feols(
+  lpop1994 ~ islamic_mayor_1994 + ilmvsm1994 + ilmvsm1994:islamic_mayor_1994,
+  data = BD_h,
+  cluster = ~prov
+)
+
+# Tabla de tests
+cat("\n=== TABLA 3: TESTS DE BALANCE ===\n")
+tests_balance <- list(
+  "Islamic Mayor 1989" = test_i89,
+  "Log Población 1994" = test_lpop
+)
+
+modelsummary(
+  tests_balance,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
+  gof_map = c("nobs", "r.squared"),
+  title = "Tests de Continuidad en Covariables Pre-Tratamiento"
+)
+
+# Extraer p-values
+pval_i89 <- summary(test_i89)$coeftable["islamic_mayor_1994", "Pr(>|t|)"]
+pval_lpop <- summary(test_lpop)$coeftable["islamic_mayor_1994", "Pr(>|t|)"]
+
+cat("\n=== RESULTADOS TESTS ===\n")
+cat("Islamic Mayor 1989:\n")
+cat("  Coeficiente:", round(coef(test_i89)["islamic_mayor_1994"], 4), "\n")
+cat("  P-value:", round(pval_i89, 4), "\n")
+cat("\nLog Población 1994:\n")
+cat("  Coeficiente:", round(coef(test_lpop)["islamic_mayor_1994"], 4), "\n")
+cat("  P-value:", round(pval_lpop, 4), "\n")
+
+
+```
+
+**Respuesta:** A partir de los resultados presentados en la tabla 3 (Tests de Balance), se realiza un prueba de hipótesis para cada una de las variables dependientes:
+
+
+Ho: No hay discontinuidad con alcalde islámico 5 años atras. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios que estan cerca al umbral son similares en terminos de la variable i89.
+
+Ho: No hay discontinuidad en tamaño poblacional. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios pequeños o grandes tienen igual probabilidad de estar cerca del umbral.
+
+En conclusión, no hay evidencia de discontinuidad en las variables analizadas en el tabla 3, toda vez las pruebas de hipotesis resultaron en no rechazo de la Ho.
 
 c) Dados sus resultados en los incisos a y b, ¿es plausible el supuesto de identificación? Expliquen por qué.
 
-**Respuesta:**
+**Respuesta:** El supuesto de identificación para una RD, se basa en la manipulación y el test de balance. Luego de corroborar estas mediciones que se resolvieron en los puntos a y b, se puede concluir que el supuesto de identificación es plausible, ya que:
+
+1. No existe evidencia de manipulación, la distribución es continua en el umbral ($c=0$). Esto sugiere que los candidatos no pudieron controlar los resultados electorales.
+
+2. Balanceo, la caracteristicas previas al tratamiento (elección de alcalde islámico en 1989 y tamaño poblacional en 1994) no presentan discontinuidad en el umbral ($c=0$). Esto indica que los municipios cercanos al umbral son comparables.
