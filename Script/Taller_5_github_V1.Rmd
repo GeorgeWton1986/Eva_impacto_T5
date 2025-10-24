@@ -1,7 +1,7 @@
 ---
 title: "EVALUACIÓN DE IMPACTO - TALLER 5"
 author: "VIÁFARA MORALES, JORGE ELIECER"
-date: "2025-09-27"
+date: "2025-10-25"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -400,7 +400,7 @@ p2 <- ggplot(BD_1, aes(x = ilmvsm1994)) +
   )
 
 print(p2)
-ggsave("figura2_densidad.png", width = 10, height = 6)
+ggsave("figura2_densidad_Kernel.png", width = 10, height = 6)
 
 ```
 
@@ -443,7 +443,7 @@ rdplot_obj <- rdplotdensity(
   ylabel = "Density"
 )
 
-dev.copy(png, "figura_2b_mccrary_with_hist.png", width = 2400, height = 1800, res = 300)
+dev.copy(png, "figura_3_Test_mccrary.png", width = 2400, height = 1800, res = 300)
 dev.off()
 
 ```
