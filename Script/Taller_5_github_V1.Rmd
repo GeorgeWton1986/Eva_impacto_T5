@@ -443,7 +443,7 @@ rdplot_obj <- rdplotdensity(
   ylabel = "Density"
 )
 
-dev.copy(png, "figura_3_Test_mccrary.png", width = 2400, height = 1800, res = 300)
+dev.copy(png, "figura3_Test_mccrary.png", width = 2400, height = 1800, res = 300)
 dev.off()
 
 ```
