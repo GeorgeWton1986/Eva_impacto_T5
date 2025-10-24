@@ -1,12 +1,29 @@
 ---
 title: "EVALUACIÓN DE IMPACTO - TALLER 5"
 author: "VIÁFARA MORALES, JORGE ELIECER"
-date: "2025-10-23"
+date: "2025-09-27"
 output:
-  pdf_document: default
-  html_document: default
-  word_document: default
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: false
+    extra_dependencies: ["booktabs"]
 ---
+```{r}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  fig.pos = "H",
+  results = 'asis'
+)
+
+# Configurar opciones
+options(modelsummary_factory_default = "gt")
+options(kableExtra.latex.load_packages = FALSE)
+
+```
+
 
 ## Introducción
 
@@ -16,15 +33,16 @@ En su artículo “Islamic Rule and the Empowerment of the Poor and Pious”, Me
 y_{i}=α+\beta m_i+f(x_i)+ε_i\quad \nonumber \\
 \end{align}
 
-Donde: 
-$y_i$ es la proporción de mujeres entre 15 y 20 años con educación secundaria completa en el año 2000.
+Donde:
 
-$x_i$ es el margen de votos con el que ganó o perdió el candidato del partido islámico.
+- $y_i$ es la proporción de mujeres entre 15 y 20 años con educación secundaria completa en el año 2000.
 
-$f(⋅)$ es un polinomio de grado $n$ de la variable $x_i$.
-$m_i$ es una dicótoma que toma el valor de uno si $x_i≥0$, es decir, si el alcalde que llegó al poder en 1994 era del partido Islámico.
+- $x_i$ es el margen de votos con el que ganó o perdió el candidato del partido islámico.
 
-$ε_i$ es el término del error. La ecuación es estimada en un vecindario alrededor del corte, el cual, en este caso, es cero.
+- $f(⋅)$ es un polinomio de grado $n$ de la variable $x_i$.
+- $m_i$ es una dicótoma que toma el valor de uno si $x_i≥0$, es decir, si el alcalde que llegó al poder en 1994 era del partido Islámico.
+
+- $ε_i$ es el término del error. La ecuación es estimada en un vecindario alrededor del corte, el cual, en este caso, es cero.
 
 En este taller, ustedes realizarán algunas de las estimaciones hechas por el autor e interpretarán los resultados. Para esto, deben usar una submuestra aleatoria de la base de datos turquia.dta. Así, justo después de abrir la base de datos – i.e., la base completa, deben eliminar aleatoriamente el 5% de las observaciones y usar la base restante.  La semilla que deben usar para que sus resultados sean replicables es su código de estudiante. 
 
@@ -148,8 +166,6 @@ cat("Controles disponibles:", paste(controles_disponibles, collapse=", "), "\n")
 
 **Respuesta:** A continuación, presentamos el desarrollo de los modelos.
 
-Manual avanzado de R markdown: https://rpubs.com/ricardo/14631 
-
 ### Solución Segundo Punto
 
 a) Ecuación principal, para toda la muestra, sin incluir controles.
@@ -231,7 +247,6 @@ modelo_2h_c <- feols(
 
 ```
 
-
 d) Ecuación principal, para la submuestra a  $\hat{h}/2$ unidades alrededor del corte, con controles.
 
 donde $\hat{h}=0,24$ es el ancho de banda óptimo estimado por los autores. Para las especificaciones con controles, supongan que: 
@@ -268,85 +283,49 @@ A continuación, se presenta la tabla de resultados.
 ```{r warning=FALSE, message=FALSE}
 # Tabla de resultados para mujeres entre 15 y 20 años educadas hasta secundaria.
 
-modelos_mujeres <- list(
-  "(a) Sin controles" = modelo_2m_a,
-  "(b) Con controles" = modelo_2m_b,
-  "(c) h=0.24" = modelo_2m_c,
-  "(d) h=0.12" = modelo_2m_d
+#Tabla 1 Efecto en la educación de las mujeres
+
+etable(
+  modelo_2m_a, modelo_2m_b, modelo_2m_c, modelo_2m_d,
+  tex = TRUE,
+  title = "Efecto de Gobierno Islámico en Educación Femenina",
+  headers = c("(a)", "(b)", "(c)", "(d)"),
+  dict = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
+  keep = "Islamic",
+  extralines = list(
+    "Controles" = c("No", "Sí", "Sí", "Sí"),
+    "Muestra" = c("Completa", "Completa", "h=0.24", "h=0.12"),
+    "Polinomio flexible" = c("No", "Sí", "Sí", "Sí")
+  ),
+  notes = "Nota: Errores estándar clustered por provincia entre paréntesis.",
+  fontsize = "small",
+  digits = 4,
+  digits.stats = 1
 )
-
-#Table 1 Efecto en la educación de la mujeres
-
-modelsummary(
-  modelos_mujeres,
-  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
-  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
-  gof_map = c("nobs", "r.squared"),
-  title = "Proporción mujeres 15-20 con secundaria completa"
-)
-
-# Tabla de resultados para hombres entre 15 y 20 años educadas hasta secundaria.
-
-modelos_hombres <- list(
-  "(a) Sin controles" = modelo_2h_a,
-  "(b) Con controles" = modelo_2h_b,
-  "(c) h=0.24" = modelo_2h_c,
-  "(d) h=0.12" = modelo_2h_d
-)
-
-```
-
-Resultado del efecto en la eduacion de las mujeres:
-```{r warning=FALSE, message=FALSE}
-
-#Table 1 Efecto en la educación de la mujeres
-
-cat("\n=== TABLA 1: EFECTOS EN EDUCACIÓN - MUJERES ===\n")
-modelsummary(
-  modelos_mujeres,
-  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
-  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
-  gof_map = c("nobs", "r.squared"),
-  title = "Proporción mujeres 15-20 con secundaria completa"
-)
-
-# Extraer coeficientes
-
-coefs_mujeres <- sapply(modelos_mujeres, function(m) {
-  coef_val <- coef(m)["islamic_mayor_1994"]
-  se_val <- sqrt(vcov(m)["islamic_mayor_1994", "islamic_mayor_1994"])
-  c(coef = coef_val, se = se_val)
-})
-
-cat("\n=== RESUMEN COEFICIENTES MUJERES ===\n")
-print(t(coefs_mujeres))
 
 ```
 
 Resultado del efecto en la eduacion de los hombres:
 ```{r warning=FALSE, message=FALSE}
 
-#Table 1 Efecto en la educación de la hombres
+#Tabla 2 Efecto en la educación de la hombres
 
-cat("\n=== TABLA 2: EFECTOS EN EDUCACIÓN - HOMBRES ===\n")
-modelsummary(
-  modelos_hombres,
-  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
-  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
-  gof_map = c("nobs", "r.squared"),
-  title = "Proporción hombres 15-20 con secundaria completa"
+etable(
+  modelo_2h_a, modelo_2h_b, modelo_2h_c, modelo_2h_d,
+  tex = TRUE,
+  title = "Efecto de Gobierno Islámico en Educación Masculina",
+  headers = c("(a)", "(b)", "(c)", "(d)"),
+  dict = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
+  keep = "Islamic",
+  extralines = list(
+    "Controles" = c("No", "Sí", "Sí", "Sí"),
+    "Muestra" = c("Completa", "Completa", "h=0.24", "h=0.12")
+  ),
+  notes = "Nota: Errores estándar clustered por provincia entre paréntesis.",
+  fontsize = "small",
+  digits = 4,
+  digits.stats = 1
 )
-
-# Extraer coeficientes hombres
-
-coefs_hombres <- sapply(modelos_hombres, function(m) {
-  coef_val <- coef(m)["islamic_mayor_1994"]
-  se_val <- sqrt(vcov(m)["islamic_mayor_1994", "islamic_mayor_1994"])
-  c(coef = coef_val, se = se_val)
-})
-
-cat("\n=== RESUMEN COEFICIENTES HOMBRES ===\n")
-print(t(coefs_hombres))
 
 ```
 
@@ -359,13 +338,13 @@ a) ¿Por qué cambian los coeficientes entre especificaciones?
 
 **Respuesta:** Los cambios en los coeficinetes obedecen a la inclusión o no de controles, al tamaño de la muestra (amplitud de la banda) y cada uno de los modelos tienen diferentes problemas de identificación. Veamos:
 
-**Modelo a Sin controles:** El coeficiente estimado (-0.027)*** presenta una correlación entre la variable eduación secundarias en niñas entre los 15 y 20 años y la varible dicotoma que respesenta la victoria del partido islamico en las elecciones de 1994. Por lo tanto, el coeficiente puede estar sesgado, por omisión de variables y no puede ser interpretados como un efecto causal.
+**Modelo a Sin controles:** El coeficiente estimado (-0.027)*** presenta una correlación entre la variable eduación secundarias en niñas entre los 15 y 20 años y la varible dicótoma que respesenta la victoria del partido islámico en las elecciones de 1994. Por lo tanto, el coeficiente puede estar sesgado, por omisión de variables y no puede ser interpretados como un efecto causal.
 
-**Modelo b Con controles:** El coeficiente estimado (0.012)* se ajusta al incluir las varibales de control, a tal punto que el signo del coeficiente cambio respecto del modelo a. Además, el ajuste de la especificación permitio que los sesgos de selección se redujeran por lo controles. No obsetante, los municipios son dispares entre sí.
+**Modelo b Con controles:** El coeficiente estimado (0.012)* se ajusta al incluir las varibales de control, a tal punto que el signo del coeficiente cambio respecto del modelo a. Además, el ajuste de la especificación permitió que los sesgos de selección se redujeran por lo controles. No obstante, los municipios son dispares entre sí.
 
-**Modelo c h=0.24:** El coeficiente estimado (0.025)*** tiene una especificación con controles y una amplitud de banda de 0.24, inidicado que se realiza una comparación entre los municipios más cercanos al umbral ($c=0$), asegurando asi que la selección es casi aleatoria. Por lo tanto, se puede establecer que se minimiza el sesgo y este coeficiente puede ser interpretado como un efecto causal local (LATE).
+**Modelo c h=0.24:** El coeficiente estimado (0.025)*** tiene una especificación con controles y una amplitud de banda de 0.24, inidicado que se realiza una comparación entre los municipios más cercanos al umbral ($c=0$), asegurando así que la selección es casi aleatoria. Por lo tanto, se puede establecer que se minimiza el sesgo y este coeficiente puede ser interpretado como un efecto causal local (LATE).
 
-**Modelo d h=0.12:** El coeficiente estimado (0.029)** fue calculado con una especificación con controles y una amplitud de banda de 0.12, estas caracteristas disminuyen en número de observaciones y generan homogeniedad en la muestra de municipios que se estan comparando al rededor del umbral ($c=0$). Sin embargo, la disminución en el número de observaciones puede aumentar la varianza del estimador. Ahora, en terminos generales, el coeficiente tiene un valor cercano al modelo c, que puede sugerir una validación por robustez.
+**Modelo d h=0.12:** El coeficiente estimado (0.029)** fue calculado con una especificación con controles y una amplitud de banda de 0.12, estas características disminuyen en número de observaciones y generan homogeniedad en la muestra de municipios que se estan comparando al rededor del umbral ($c=0$). Sin embargo, la disminución en el número de observaciones puede aumentar la varianza del estimador. Ahora, en terminos generales, el coeficiente tiene un valor cercano al modelo c, que puede sugerir una validación por robustez.
 
 b) ¿Cuál parece ser el impacto de la llegada al poder del Partido Islámico para las mujeres? 
 
@@ -373,7 +352,7 @@ b) ¿Cuál parece ser el impacto de la llegada al poder del Partido Islámico pa
 
 ¿Parece ser este impacto robusto a las especificaciones?
 
-**Respuesta:** Si, el impacto es robusto cuando se comparan las columnas 3 y 4 de la tabla 1, entendiendo que los coeficientes son positivos y sus significancias estadisticas varian entre el 1% y el 5%. Puede existir otra manera de comparación frente a la columna 1, donde la especificación genera una correlación y el estimados es negativo. En conclusión, el cambio del signo entre los modelos confirma el efecto causal robusto.  
+**Respuesta:** Si, el impacto es robusto cuando se comparan las columnas 3 y 4 de la tabla 1, entendiendo que los coeficientes son positivos y sus significancias estadísticas varian entre el 1% y el 5%. Puede existir otra manera de comparación frente a la columna 1, donde la especificación genera una correlación y el estimados es negativo. En conclusión, el cambio del signo entre los modelos confirma el efecto causal robusto.  
 
 ## Cuarto Punto
 
@@ -467,9 +446,6 @@ rdplot_obj <- rdplotdensity(
 dev.copy(png, "figura_2b_mccrary_with_hist.png", width = 2400, height = 1800, res = 300)
 dev.off()
 
-cat("\n✓ Figura con histograma guardada: figura_2b_mccrary_with_hist.png\n")
-
-
 ```
 
 **Respuesta:** A partir de los resultados observados en el figura 1 (Histograma) y la figura 2 (Densidad de Kernel), no se observa un salto en la distribución la variable $x_i$ (ilmvsm1994) - es el margen de votos con el que ganó o perdió el candidato del partido islámico-. Información que concuerda con el Autor Meyersson (2014), quien no encuentra evidencia de manipulación en la variable de asignación alrededor del umbral ($c=0$).
@@ -492,32 +468,28 @@ test_lpop <- feols(
   cluster = ~prov
 )
 
-# Tabla de tests
-cat("\n=== TABLA 3: TESTS DE BALANCE ===\n")
-tests_balance <- list(
-  "Islamic Mayor 1989" = test_i89,
-  "Log Población 1994" = test_lpop
-)
-
-modelsummary(
-  tests_balance,
-  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
-  coef_rename = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
-  gof_map = c("nobs", "r.squared"),
-  title = "Tests de Continuidad en Covariables Pre-Tratamiento"
-)
-
 # Extraer p-values
 pval_i89 <- summary(test_i89)$coeftable["islamic_mayor_1994", "Pr(>|t|)"]
 pval_lpop <- summary(test_lpop)$coeftable["islamic_mayor_1994", "Pr(>|t|)"]
 
-cat("\n=== RESULTADOS TESTS ===\n")
-cat("Islamic Mayor 1989:\n")
-cat("  Coeficiente:", round(coef(test_i89)["islamic_mayor_1994"], 4), "\n")
-cat("  P-value:", round(pval_i89, 4), "\n")
-cat("\nLog Población 1994:\n")
-cat("  Coeficiente:", round(coef(test_lpop)["islamic_mayor_1994"], 4), "\n")
-cat("  P-value:", round(pval_lpop, 4), "\n")
+# Tabla 3 Tests de Balance
+
+etable(
+  test_i89, test_lpop,
+  tex = TRUE,
+  title = "Tests de Balance con P-valores",
+  headers = c("Islamic 1989", "Log Población 1994"),
+  dict = c("islamic_mayor_1994" = "Islamic Mayor 1994"),
+  keep = "Islamic",
+  extralines = list(
+    "P-value" = c(sprintf("%.4f", pval_i89), sprintf("%.4f", pval_lpop)),
+    "Balanceado?" = c(
+      ifelse(pval_i89 > 0.10, "Sí", "No"),
+      ifelse(pval_lpop > 0.10, "Sí", "No")
+    )
+  ),
+  digits = 4
+)
 
 
 ```
@@ -525,9 +497,9 @@ cat("  P-value:", round(pval_lpop, 4), "\n")
 **Respuesta:** A partir de los resultados presentados en la tabla 3 (Tests de Balance), se realiza un prueba de hipótesis para cada una de las variables dependientes:
 
 
-Ho: No hay discontinuidad con alcalde islámico 5 años atras. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios que estan cerca al umbral son similares en terminos de la variable i89.
+**-Ho:** No hay discontinuidad con alcalde islámico 5 años atras. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios que estan cerca al umbral son similares en terminos de la variable i89.
 
-Ho: No hay discontinuidad en tamaño poblacional. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios pequeños o grandes tienen igual probabilidad de estar cerca del umbral.
+**-Ho:** No hay discontinuidad en tamaño poblacional. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios pequeños o grandes tienen igual probabilidad de estar cerca del umbral.
 
 En conclusión, no hay evidencia de discontinuidad en las variables analizadas en el tabla 3, toda vez las pruebas de hipotesis resultaron en no rechazo de la Ho.
 
