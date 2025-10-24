@@ -1,7 +1,7 @@
 ---
 title: "EVALUACIÓN DE IMPACTO - TALLER 5"
 author: "VIÁFARA MORALES, JORGE ELIECER"
-date: "2025-09-27"
+date: "2025-10-23"
 output:
   pdf_document: default
   html_document: default
@@ -76,7 +76,8 @@ p_load(haven,   #Leer archivos .dta
       kableExtra, #Tablas avanzadas
       tidyverse, #Conjunto de paquetes para ciencia de datos
       modelsummary, #Resumir modelos
-      ggplot2 #Gráficos
+      ggplot2, #Gráficos
+      rddensity #Test de McCrary
       )
 ```
 
@@ -350,7 +351,6 @@ print(t(coefs_hombres))
 ```
 
 
-
 ## Tercer Punto
 3.	A partir de los resultados encontrados en el anterior punto, respondan:
 
@@ -422,6 +422,53 @@ p2 <- ggplot(BD_1, aes(x = ilmvsm1994)) +
 
 print(p2)
 ggsave("figura2_densidad.png", width = 10, height = 6)
+
+```
+
+```{r warning=FALSE, message=FALSE}
+
+# Test formal
+density_test <- rddensity(
+  X = BD_1$ilmvsm1994,
+  c = 0,
+  p = 2,              # Polinomio local orden 2
+  q = 3,              # Bias correction orden 3
+  kernel = "triangular",
+  fitselect = "unrestricted"
+)
+
+# Mostrar resumen
+summary(density_test)
+
+# Extraer resultados clave
+test_stat <- density_test$test$t_jk
+pvalue <- density_test$test$p_jk
+bandwidth_izq <- density_test$h$left
+bandwidth_der <- density_test$h$right
+
+# Crear el objeto con histograma para obtener los datos
+rdplot_obj <- rdplotdensity(
+  rdd = density_test,
+  X = BD_1$ilmvsm1994,
+  plotRange = c(-0.5, 0.5),
+  plotN = 25,
+  plotGrid = c("es","qs"),
+  type = "points",
+  CIshade = 0.2,
+  hist = FALSE,
+  histBreaks = NULL,
+  histFillCol = "gray90",
+  histLineCol = "white",
+  title = "Figura 3: Test de McCrary",
+  xlabel = "Islamic win margin (ilmvsm1994)",
+  ylabel = "Density"
+)
+
+dev.copy(png, "figura_2b_mccrary_with_hist.png", width = 2400, height = 1800, res = 300)
+dev.off()
+
+cat("\n✓ Figura con histograma guardada: figura_2b_mccrary_with_hist.png\n")
+
 
 ```
 
