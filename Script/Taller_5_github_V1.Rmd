@@ -55,17 +55,17 @@ Como su solución a este conjunto de problemas, proporcione un documento PDF con
 
 a)	¿Por qué el autor usa la metodología de Regresión Discontinua para identificar los efectos de interés? 
 
-**Respuesta:** El autor usa la metodología de Regresión Discontinua (RD) porque quiere identificar el impacto causal local de las leyes o políticas islamicas en terminos de resultados de la educación a nivel municipal, haciando una distinción entre ganar o perder las elecciones por parte del partido islamico.
+**Respuesta:** El autor usa la metodología de Regresión Discontinua (RD) porque quiere identificar el impacto causal local de las leyes o políticas islámicas en términos de resultados de la educación a nivel municipal, haciendo una distinción entre ganar o perder las elecciones por parte del partido islámico.
 
-Es decir, es conocido que un gobierno islamico representa pobreza, religiosidad, tradiciones conservadoras y derechos restringidos para las mujeres. 
+Es decir, los municipios que eligen partidos islámicos suelen ser pobres y conservadores, lo que genera correlaciones negativas en los modelos lineales sin controles. 
 
 b)	¿Cuál es la intuición detrás?
 
-**Respuesta:** El diseño de un RD permite establecer un punto de corte (Umbral) $c=0$ de acuerdo con el indice de elegibilidad $m_i$. 
+**Respuesta:** El diseño de un RD permite establecer un punto de corte (Umbral) $c=0$ de acuerdo con el índice de elegibilidad $m_i$. 
 
 c)	¿Cuál es el supuesto de identificación?
 
-**Respuesta:** Las caracteristica observables y no observables varian levemente alrededor del umbral. Además, no hay manipulación de la variable de asignación $x_i$ alrededor del umbral.
+**Respuesta:** Las características observables y no observables varian levemente alrededor del umbral. Además, no hay manipulación de la variable de asignación $x_i$ alrededor del umbral.
 
 ## Segundo Punto
 2.	Para cada género, presenten en una tabla los resultados de estimar las siguientes especificaciones
@@ -305,7 +305,7 @@ etable(
 
 ```
 
-Resultado del efecto en la eduacion de los hombres:
+Resultado del efecto en la eduación de los hombres:
 ```{r warning=FALSE, message=FALSE}
 
 #Tabla 2 Efecto en la educación de la hombres
@@ -336,19 +336,19 @@ etable(
 ### Solución tercer Punto
 a) ¿Por qué cambian los coeficientes entre especificaciones?
 
-**Respuesta:** Los cambios en los coeficinetes obedecen a la inclusión o no de controles, al tamaño de la muestra (amplitud de la banda) y cada uno de los modelos tienen diferentes problemas de identificación. Veamos:
+**Respuesta:** Los cambios en los coeficientes obedecen a la inclusión o no de controles, al tamaño de la muestra (amplitud de la banda) y cada uno de los modelos tienen diferentes problemas de identificación. Veamos:
 
-**Modelo a Sin controles:** El coeficiente estimado (-0.027)*** presenta una correlación entre la variable eduación secundarias en niñas entre los 15 y 20 años y la varible dicótoma que respesenta la victoria del partido islámico en las elecciones de 1994. Por lo tanto, el coeficiente puede estar sesgado, por omisión de variables y no puede ser interpretados como un efecto causal.
+**Modelo a Sin controles:** El coeficiente estimado (-0.027)*** presenta una correlación entre la variable eduación secundaria en niñas entre los 15 y 20 años y la varible dicótoma que repesenta la victoria del partido islámico en las elecciones de 1994. Por lo tanto, el coeficiente puede estar sesgado, por omisión de variables y no puede ser interpretados como un efecto causal.
 
 **Modelo b Con controles:** El coeficiente estimado (0.012)* se ajusta al incluir las varibales de control, a tal punto que el signo del coeficiente cambio respecto del modelo a. Además, el ajuste de la especificación permitió que los sesgos de selección se redujeran por lo controles. No obstante, los municipios son dispares entre sí.
 
-**Modelo c h=0.24:** El coeficiente estimado (0.025)*** tiene una especificación con controles y una amplitud de banda de 0.24, inidicado que se realiza una comparación entre los municipios más cercanos al umbral ($c=0$), asegurando así que la selección es casi aleatoria. Por lo tanto, se puede establecer que se minimiza el sesgo y este coeficiente puede ser interpretado como un efecto causal local (LATE).
+**Modelo c h=0.24:** El coeficiente estimado (0.025)*** tiene una especificación con controles y una amplitud de banda de 0.24, indicando que se realiza una comparación entre los municipios más cercanos al umbral ($c=0$), asegurando así, que la selección es casi aleatoria. Por lo tanto, se puede establecer que se minimiza el sesgo y este coeficiente puede ser interpretado como un efecto causal local (LATE).
 
-**Modelo d h=0.12:** El coeficiente estimado (0.029)** fue calculado con una especificación con controles y una amplitud de banda de 0.12, estas características disminuyen en número de observaciones y generan homogeniedad en la muestra de municipios que se estan comparando al rededor del umbral ($c=0$). Sin embargo, la disminución en el número de observaciones puede aumentar la varianza del estimador. Ahora, en terminos generales, el coeficiente tiene un valor cercano al modelo c, que puede sugerir una validación por robustez.
+**Modelo d h=0.12:** El coeficiente estimado (0.029)** fue calculado con una especificación con controles y una amplitud de banda de 0.12, estas características disminuyen en número de observaciones y generan homogeniedad en la muestra de municipios que se estan comparando al rededor del umbral ($c=0$). Sin embargo, la disminución en el número de observaciones puede aumentar la varianza del estimador. Ahora, en términos generales, el coeficiente tiene un valor cercano al modelo c, que puede sugerir una validación por robustez.
 
 b) ¿Cuál parece ser el impacto de la llegada al poder del Partido Islámico para las mujeres? 
 
-**Respuesta:** De conformidad con la tabla 1 columna 3 (0.025)***, el efecto de la llegada al poder del Partido Islámico para las mujeres entre 15 y 20 años con secundaria completa, es positivo y significativo al 1%. Entonces, su interpretación sería la siguiente: La llegada de un alcalde islámico en 1994, incremento en promedio 2.5 puntos percetuales la proporción de mujeres entre 15 y 20 años con educación secundaria completa en el año 2000, en los municipios cercanos al umbral de victoria electoral. En terminos relativos, se puede establecer que fue de 2.5/16.3=15.34% (Proporción promedio de mujeres con secundaria completa en 2000).
+**Respuesta:** De conformidad con la tabla 1 columna 3 (0.025)***, el efecto de la llegada al poder del Partido Islámico para las mujeres entre 15 y 20 años con secundaria completa, es positivo y significativo al 1%. Entonces, su interpretación sería la siguiente: La llegada de un alcalde islámico en 1994, incrementó en promedio 2.5 puntos percetuales la proporción de mujeres entre 15 y 20 años con educación secundaria completa en el año 2000, en los municipios cercanos al umbral de victoria electoral. En terminos relativos, se puede establecer que fue de 2.5/16.3=15.34% (Proporción promedio de mujeres con secundaria completa en 2000). Los resultado obtenidos por Meyersson son aproximadamente del 20%, esto valida el resultado obtenido.
 
 ¿Parece ser este impacto robusto a las especificaciones?
 
@@ -448,7 +448,9 @@ dev.off()
 
 ```
 
-**Respuesta:** A partir de los resultados observados en el figura 1 (Histograma) y la figura 2 (Densidad de Kernel), no se observa un salto en la distribución la variable $x_i$ (ilmvsm1994) - es el margen de votos con el que ganó o perdió el candidato del partido islámico-. Información que concuerda con el Autor Meyersson (2014), quien no encuentra evidencia de manipulación en la variable de asignación alrededor del umbral ($c=0$).
+**Respuesta:** A partir de los resultados observados en el figura 1 (Histograma) y la figura 2 (Densidad de Kernel), no se observa un salto en la distribución de la variable $x_i$ (ilmvsm1994) - es el margen de votos con el que ganó o perdió el candidato del partido islámico-. Información que concuerda con el Autor Meyersson, quien no encuentra evidencia de manipulación en la variable de asignación alrededor del umbral ($c=0$).
+
+Adicional, se realizó el test de McCrary (2008) para verificar estadisticamente la existencia de manipulación por lo partidos políticos. El resultado obtenido fue: $T=-1.24$ con un p-valor de $0.213$, lo cual indica que no es significativo al 10%. Por lo tanto, no se rechaza la hipótesis nula de no manipulación en la variable de asignación alrededor del umbral ($c=0$).
 
 b) En una tabla presenten los resultados de estimar la ecuación de interés, sin controles, pero incluyendo $f(x_i)$, tomando como variables dependientes: i) la elección de un alcalde del partido Islámico en 1984 $(i89)$ y ii) el logaritmo de la población en 1994 $(lpop1994)$. Para esto, usen únicamente la muestra de elecciones alrededor del ancho de banda óptimo. Dados sus resultados, ¿parece haber continuidad en estas variables?
 
@@ -497,11 +499,11 @@ etable(
 **Respuesta:** A partir de los resultados presentados en la tabla 3 (Tests de Balance), se realiza un prueba de hipótesis para cada una de las variables dependientes:
 
 
-**-Ho:** No hay discontinuidad con alcalde islámico 5 años atras. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios que estan cerca al umbral son similares en terminos de la variable i89.
+**-Ho:** No hay discontinuidad con alcalde islámico 5 años atras. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios que estan cerca al umbral son similares en términos de la variable $i89$.
 
 **-Ho:** No hay discontinuidad en tamaño poblacional. El p-valor es mayor a 0.10, por lo tanto, no se rechaza Ho. Los municipios pequeños o grandes tienen igual probabilidad de estar cerca del umbral.
 
-En conclusión, no hay evidencia de discontinuidad en las variables analizadas en el tabla 3, toda vez las pruebas de hipotesis resultaron en no rechazo de la Ho.
+En conclusión, no hay evidencia de discontinuidad en las variables analizadas en el tabla 3, toda vez las pruebas de hipótesis resultaron en No rechazo de la Ho. En consecuencia la Regresión Discontinua (RD) identifica el efecto causal local (LATE) de manera valida alrededor del umbral ($c=0$).
 
 c) Dados sus resultados en los incisos a y b, ¿es plausible el supuesto de identificación? Expliquen por qué.
 
@@ -509,4 +511,4 @@ c) Dados sus resultados en los incisos a y b, ¿es plausible el supuesto de iden
 
 1. No existe evidencia de manipulación, la distribución es continua en el umbral ($c=0$). Esto sugiere que los candidatos no pudieron controlar los resultados electorales.
 
-2. Balanceo, la caracteristicas previas al tratamiento (elección de alcalde islámico en 1989 y tamaño poblacional en 1994) no presentan discontinuidad en el umbral ($c=0$). Esto indica que los municipios cercanos al umbral son comparables.
+2. Balanceo, la características previas al tratamiento (elección de alcalde islámico en 1989 y tamaño poblacional en 1994) no presentan discontinuidad en el umbral ($c=0$). Esto indica que los municipios cercanos al umbral son comparables.
