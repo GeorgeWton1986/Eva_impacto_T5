@@ -1,6 +1,6 @@
 ---
 title: "EVALUACIÓN DE IMPACTO - TALLER 5"
-author: "VIÁFARA MORALES, JORGE ELIECER"
+author: "SANCHEZ, JUAN GUILLERMO Y VIÁFARA MORALES, JORGE ELIECER"
 date: "2025-10-25"
 output:
   pdf_document:
@@ -8,7 +8,7 @@ output:
     keep_tex: false
     extra_dependencies: ["booktabs"]
 ---
-```{r}
+```{r ECHO=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE,
   warning = FALSE,
